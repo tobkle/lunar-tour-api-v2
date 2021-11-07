@@ -6,7 +6,10 @@
     "scripts": {
         "offline": "sls offline --aws-profile default",
         "deploy": "sls deploy",
-        "test": "jest"
+        "test": "jest",
+        "prisma:pull": "npx prisma db pull",
+        "prisma:introspect": "npx prisma db pull",
+        "prisma:generate": "prisma generate"
     },
     "author": "",
     "license": "MIT",
@@ -22,20 +25,24 @@
         "babel-preset-env": "^1.7.0",
         "babel-preset-stage-3": "^6.24.1",
         "jest": "^21.2.1",
+        "prisma": "^3.4.1",
         "serverless-offline": "^8.2.0",
         "serverless-webpack": "^5.1.0",
         "webpack": "^4.16.2",
         "webpack-node-externals": "^1.6.0"
     },
     "dependencies": {
+        "@prisma/client": "^3.4.1",
         "apollo-server-lambda": "^2.5.0",
         "aws-sdk": "2.380.0",
         "babel-runtime": "^6.26.0",
+        "copy-webpack-plugin": "^9.0.1",
         "graphql": "^14.3.0",
         "postmark": "^2.5.1",
         "serverless-dotenv-plugin": "^2.4.2",
         "source-map-support": "^0.4.18",
         "stripe": "^8.32.0",
+        "to-buffer": "^1.1.1",
         "uuid": "^7.0.2"
     }
 }

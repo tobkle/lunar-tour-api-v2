@@ -1,5 +1,18 @@
 import * as dynamoDBLib from "../../libs/dynamodb-lib";
 import { CostExplorer } from "aws-sdk";
+import { PrismaClient } from "@prisma/client";
+const prisma = new PrismaClient();
+
+export const getOrganizations = async (args, { db }) => {
+    try {
+        console.log("starting call now...");
+        const organizations = await prisma.organization.findMany({});
+        console.log("organizations:", organizations);
+        return "World";
+    } catch (error) {
+        return error.message;
+    }
+};
 
 export const getAllListings = async (args, context) => {
     const params = {

@@ -21,6 +21,9 @@ custom:
     webpack:
         webpackConfig: ./webpack.config.js
         includeModules: true
+        packagerOptions:
+            scripts:
+                - prisma generate
     serverless-offline:
         port: 4000
 
@@ -30,6 +33,7 @@ provider:
     stage: dev
     region: eu-central-1
     profile: default
+    lambdaHashingVersion: 20201221
     environment:
         LunarTourDB: ${self:custom.LunarTourDB}
         BookingsDB: ${self:custom.BookingsDB}

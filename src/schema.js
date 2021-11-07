@@ -73,6 +73,7 @@ type Listing {
   }
   
   type Query {
+    getOrganizations: String
     getAllListings: [Listing]
     getAListing(listingId: String!): Listing!
   }

@@ -1,0 +1,525 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+model Account {
+  id                 Int       @id @default(autoincrement())
+  userId             Int
+  email              String?
+  displayName        String?
+  providerId         String
+  providerType       String
+  providerAccountId  String
+  refreshToken       String?
+  accessToken        String?
+  accessTokenExpires DateTime?
+  image              String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime
+  User               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, providerType], map: "Account.providerId_providerType_unique")
+}
+
+model Bucket {
+  id           Int           @id @default(autoincrement())
+  orgId        Int
+  bucket       String
+  Organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Measurement  Measurement[]
+
+  @@unique([orgId, bucket], map: "Bucket.orgId_bucket_unique")
+}
+
+model Calendar {
+  orgId           Int
+  id              Int               @default(autoincrement())
+  name            String
+  Organization    Organization      @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  CalendarHoliday CalendarHoliday[]
+  Plant           Plant[]
+
+  @@id([orgId, id])
+}
+
+model CalendarHoliday {
+  orgId        Int
+  calendarId   Int
+  date         DateTime
+  description  String?      @default("")
+  fromTime     DateTime
+  toTime       DateTime
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Calendar     Calendar     @relation(fields: [orgId, calendarId], references: [orgId, id], onDelete: Cascade, map: "CalendarHoliday_orgId_fkey1")
+
+  @@id([orgId, calendarId, date])
+}
+
+model CurrentSensorValues {
+  orgId        Int
+  machineId    Int
+  bucket       String
+  kpi          String
+  key          String
+  time         DateTime
+  type         FieldType
+  floatValue   Float?
+  integerValue Int?
+  stringValue  String?
+  booleanValue Boolean?
+
+  @@id([orgId, machineId, bucket, kpi, key])
+}
+
+model Data {
+  orgId        Int
+  id           Int          @default(autoincrement())
+  bucket       String
+  processed    Boolean      @default(false)
+  data         String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@id([orgId, id])
+}
+
+model Field {
+  id               Int                @id @default(autoincrement())
+  orgId            Int
+  key              String
+  type             FieldType          @default(string)
+  Organization     Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  MeasurementValue MeasurementValue[]
+
+  @@unique([orgId, key], map: "Field.orgId_key_unique")
+}
+
+model Group {
+  orgId        Int
+  id           Int          @default(autoincrement())
+  plantId      Int
+  name         String
+  description  String?
+  image        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Plant        Plant        @relation(fields: [orgId, plantId], references: [orgId, id], onDelete: Cascade, map: "Group_orgId_fkey1")
+  Machine      Machine[]
+  Sensor       Sensor[]
+
+  @@id([orgId, id])
+}
+
+model KPI {
+  id           Int           @id @default(autoincrement())
+  orgId        Int
+  kpi          String
+  Organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Measurement  Measurement[]
+
+  @@unique([orgId, kpi], map: "KPI.orgId_kpi_unique")
+}
+
+model Machine {
+  orgId        Int
+  id           Int          @default(autoincrement())
+  plantId      Int
+  groupId      Int
+  name         String
+  description  String?      @default("")
+  image        String?      @default("")
+  tagKey       String
+  tagValue     String
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  active       Boolean      @default(false)
+  alarm        String?      @default("")
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Group        Group        @relation(fields: [orgId, groupId], references: [orgId, id], onDelete: Cascade, map: "Machine_orgId_fkey2")
+  Plant        Plant        @relation(fields: [orgId, plantId], references: [orgId, id], onDelete: Cascade, map: "Machine_orgId_fkey1")
+  Sensor       Sensor[]
+
+  @@id([orgId, id])
+  @@unique([orgId, tagKey, tagValue], map: "Machine.orgId_tagKey_tagValue_unique")
+}
+
+model Measurement {
+  id               String             @id
+  orgId            Int
+  bucket           String
+  kpi              String
+  tagString        String
+  time             DateTime
+  Organization     Organization       @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Bucket           Bucket             @relation(fields: [orgId, bucket], references: [orgId, bucket], onDelete: Cascade, map: "Measurement_orgId_fkey1")
+  KPI              KPI                @relation(fields: [orgId, kpi], references: [orgId, kpi], onDelete: Cascade, map: "Measurement_orgId_fkey2")
+  Time             Time               @relation(fields: [orgId, time], references: [orgId, timestamp], onDelete: Cascade, map: "Measurement_orgId_fkey3")
+  MeasurementValue MeasurementValue[]
+  Sensor           Sensor[]
+  Tag              Tag[]
+
+  @@unique([orgId, bucket, kpi, tagString, time], map: "Measurement.orgId_bucket_kpi_tagString_time_unique")
+  @@unique([orgId, id], map: "Measurement.orgId_id_unique")
+}
+
+model MeasurementValue {
+  orgId         Int
+  measurementId String
+  key           String
+  id            Int
+  type          FieldType
+  floatValue    Float?
+  integerValue  Int?
+  stringValue   String?
+  booleanValue  Boolean?
+  Organization  Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Field         Field        @relation(fields: [orgId, key], references: [orgId, key], onDelete: Cascade, map: "MeasurementValue_orgId_fkey2")
+  Measurement   Measurement  @relation(fields: [orgId, measurementId], references: [orgId, id], onDelete: Cascade, map: "MeasurementValue_orgId_fkey1")
+
+  @@id([orgId, measurementId, key, id])
+}
+
+model Membership {
+  id              Int              @id @default(autoincrement())
+  role            MembershipRole   @default(user)
+  orgId           Int
+  userId          Int
+  invitedName     String?
+  invitedEmail    String?
+  invitationToken String?
+  status          InvitationStatus @default(invited)
+  invitedAt       DateTime?        @default(now())
+  joinedAt        DateTime?
+  Organization    Organization     @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  User            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, invitedEmail], map: "Membership.orgId_invitedEmail_unique")
+  @@index([invitationToken], map: "Membership.invitationToken_index")
+  @@index([orgId, userId, role, status], map: "Membership.orgId_userId_role_status_index")
+}
+
+model Message {
+  orgId        Int
+  id           Int          @default(autoincrement())
+  timestamp    DateTime     @default(now())
+  userId       Int          @default(0)
+  machineId    Int          @default(0)
+  message      String       @default("")
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  User         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([orgId, id])
+  @@index([orgId, machineId, timestamp, userId], map: "Message.orgId_machineId_timestamp_userId_index")
+  @@index([orgId, message], map: "Message.orgId_message_index")
+}
+
+model Organization {
+  id                   Int                @id @default(autoincrement())
+  name                 String
+  role                 GlobalRole
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  plan                 Plan               @default(free)
+  status               Status             @default(active)
+  url                  String             @default("")
+  image                String             @default("")
+  dashboardOrg         String?            @default("")
+  dashboardToken       String?            @default("")
+  dashboardUrl         String?            @default("")
+  dataOrg              String?            @default("")
+  dataToken            String?            @default("")
+  dataUrl              String?            @default("")
+  orderQuantity        Int                @default(0)
+  queryToken           String?            @default("")
+  queryUrl             String?            @default("")
+  Bucket               Bucket[]
+  Calendar             Calendar[]
+  CalendarHoliday      CalendarHoliday[]
+  Data                 Data[]
+  Field                Field[]
+  Group                Group[]
+  KPI                  KPI[]
+  Machine              Machine[]
+  Measurement          Measurement[]
+  MeasurementValue     MeasurementValue[]
+  Membership           Membership[]
+  Message              Message[]
+  Plant                Plant[]
+  Sensor               Sensor[]
+  Shift                Shift[]
+  ShiftTime            ShiftTime[]
+  Tag                  Tag[]
+  Team                 Team[]
+  TeamShift            TeamShift[]
+  Time                 Time[]
+  User                 User[]
+
+  @@index([stripeCustomerId], map: "Organization.stripeCustomerId_index")
+}
+
+model Plant {
+  orgId        Int
+  id           Int          @default(autoincrement())
+  name         String
+  description  String?
+  address      String?
+  image        String?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime
+  calendarId   Int
+  timezone     String       @default("Europe/Amsterdam")
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Calendar     Calendar     @relation(fields: [orgId, calendarId], references: [orgId, id], onDelete: Cascade, map: "Plant_orgId_fkey1")
+  Group        Group[]
+  Machine      Machine[]
+  Sensor       Sensor[]
+  Shift        Shift[]
+  Team         Team[]
+
+  @@id([orgId, id])
+}
+
+model Sensor {
+  id           Int           @id @default(autoincrement())
+  orgId        Int
+  plantId      Int
+  groupId      Int
+  machineId    Int
+  Organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Group        Group         @relation(fields: [orgId, groupId], references: [orgId, id], onDelete: Cascade, map: "Sensor_orgId_fkey2")
+  Machine      Machine       @relation(fields: [orgId, machineId], references: [orgId, id], onDelete: Cascade, map: "Sensor_orgId_fkey3")
+  Plant        Plant         @relation(fields: [orgId, plantId], references: [orgId, id], onDelete: Cascade, map: "Sensor_orgId_fkey1")
+  Measurement  Measurement[]
+
+  @@unique([orgId, plantId, groupId, machineId], map: "Sensor.orgId_plantId_groupId_machineId_unique")
+}
+
+model Session {
+  id                 Int       @id @default(autoincrement())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime
+  expiresAt          DateTime?
+  handle             String    @unique(map: "Session.handle_unique")
+  hashedSessionToken String?
+  antiCSRFToken      String?
+  publicData         String?
+  privateData        String?
+  userId             Int?
+  User               User?     @relation(fields: [userId], references: [id])
+}
+
+model Shift {
+  orgId        Int
+  id           Int          @default(autoincrement())
+  name         String
+  plantId      Int          @default(1)
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Plant        Plant        @relation(fields: [orgId, plantId], references: [orgId, id], onDelete: Cascade, map: "Shift_orgId_fkey1")
+  ShiftTime    ShiftTime[]
+  TeamShift    TeamShift[]
+
+  @@id([orgId, id])
+}
+
+model ShiftTime {
+  orgId        Int
+  shiftId      Int
+  weekday      Int          @default(1)
+  fromTime     String
+  toTime       String
+  work         Boolean      @default(true)
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Shift        Shift        @relation(fields: [orgId, shiftId], references: [orgId, id], onDelete: Cascade, map: "ShiftTime_orgId_fkey1")
+
+  @@id([orgId, shiftId, weekday, fromTime])
+}
+
+model spatial_ref_sys {
+  srid      Int     @id
+  auth_name String? @db.VarChar(256)
+  auth_srid Int?
+  srtext    String? @db.VarChar(2048)
+  proj4text String? @db.VarChar(2048)
+}
+
+model Tag {
+  id           Int           @id @default(autoincrement())
+  orgId        Int
+  key          String
+  value        String
+  Organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Measurement  Measurement[]
+
+  @@unique([orgId, key, value], map: "Tag.orgId_key_value_unique")
+}
+
+model Team {
+  orgId        Int
+  id           Int          @default(autoincrement())
+  name         String
+  leader       String?      @default("")
+  leaderImage  String?      @default("")
+  plantId      Int          @default(1)
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Plant        Plant        @relation(fields: [orgId, plantId], references: [orgId, id], onDelete: Cascade, map: "Team_orgId_fkey1")
+  TeamShift    TeamShift[]
+
+  @@id([orgId, id])
+}
+
+model TeamShift {
+  orgId        Int
+  teamId       Int
+  shiftId      Int
+  always       Boolean      @default(false)
+  profile      ShiftProfile @default(week_even)
+  Organization Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Shift        Shift        @relation(fields: [orgId, shiftId], references: [orgId, id], onDelete: Cascade, map: "TeamShift_orgId_fkey2")
+  Team         Team         @relation(fields: [orgId, teamId], references: [orgId, id], onDelete: Cascade, map: "TeamShift_orgId_fkey1")
+
+  @@id([orgId, teamId, shiftId])
+}
+
+model Time {
+  orgId        Int
+  timestamp    DateTime
+  year         Int
+  month        Int
+  day          Int
+  shift        Int
+  hour         Int
+  minute       Int
+  second       Int
+  weekday      Int
+  Organization Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  Measurement  Measurement[]
+
+  @@id([orgId, timestamp])
+  @@index([orgId, shift, year, month, day], map: "Time.orgId_shift_year_month_day_index")
+  @@index([orgId, year, month, day, hour, minute, second], map: "Time.orgId_year_month_day_hour_minute_second_index")
+}
+
+model Token {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime
+  hashedToken String
+  type        TokenType
+  expiresAt   DateTime
+  sentTo      String
+  userId      Int
+  User        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([hashedToken, type], map: "Token.hashedToken_type_unique")
+}
+
+model User {
+  id                  Int                @id @default(autoincrement())
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime
+  name                String?
+  email               String             @unique(map: "User.email_unique")
+  emailVerified       Boolean            @default(false)
+  hashedPassword      String?
+  currentOrgId        Int?
+  role                GlobalRole         @default(customer)
+  image               String?
+  mobileNumber        String?            @default("")
+  receiveAfterMinutes Int                @default(60)
+  receiveNotification Boolean            @default(false)
+  notificationMethod  NotificationMethod @default(whatsapp)
+  notificationLocale  NotificationLocale @default(de)
+  Organization        Organization?      @relation(fields: [currentOrgId], references: [id])
+  Account             Account[]
+  Membership          Membership[]
+  Message             Message[]
+  Session             Session[]
+  Token               Token[]
+
+  @@index([email], map: "User.email_index")
+}
+
+model VerificationRequest {
+  id         Int      @id @default(autoincrement())
+  identifier String
+  token      String   @unique(map: "tokenIndex")
+  expires    DateTime
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+}
+
+enum FieldType {
+  float
+  integer
+  string
+  boolean
+  timestamp
+}
+
+enum GlobalRole {
+  superadmin
+  customer
+}
+
+enum InvitationStatus {
+  invited
+  accepted
+  declined
+}
+
+enum MembershipRole {
+  owner
+  admin
+  user
+}
+
+enum NotificationLocale {
+  de
+  en
+}
+
+enum NotificationMethod {
+  whatsapp
+  sms
+  email
+  phonecall
+}
+
+enum Plan {
+  free
+  professional
+  enterprise
+}
+
+enum Provider {
+  github
+  google
+  facebook
+}
+
+enum ShiftProfile {
+  week_even
+  week_odd
+}
+
+enum Status {
+  active
+  canceled
+  incomplete
+  incomplete_expired
+  past_due
+  trialing
+  unpaid
+}
+
+enum TokenType {
+  RESET_PASSWORD
+}
