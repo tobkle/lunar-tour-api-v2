@@ -26,7 +26,7 @@ custom:
 
 provider:
     name: aws
-    runtime: nodejs10.x
+    runtime: nodejs14.x
     stage: dev
     region: eu-central-1
     profile: default
