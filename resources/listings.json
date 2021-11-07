@@ -1,0 +1,17 @@
+{
+    {
+        "listingId": "2dd77a8b-ff23-43f7-8694-e05807cf359f",
+        "listingName": "Lunar Rovering",
+        "listingLocation": "",
+        "coverPhoto": "",
+        "listingDescription": "",
+        "listingType": {},
+        "listingActivities": "String",
+        "specialType"": String,
+     "specialAmount"": Int,
+     "rating"": Int,
+     "guide"": Guide,
+     "price"": String,
+     "numberOfDays"": Int
+    }
+}
