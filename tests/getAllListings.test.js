@@ -1,27 +1,27 @@
 import { getAllListings, getAListing } from "../src/resolvers/query";
 describe("All Listings", () => {
-  test("brings back all listings", async () => {
-    const args = "args";
-    const context = "context";
+    test("brings back all listings", async () => {
+        const args = "args";
+        const context = "context";
 
-    const response = await getAllListings(args, context);
-    expect(response[0]).toHaveProperty("listingId");
-    expect(response.length).toBeGreaterThan(1);
-  });
+        const response = await getAllListings(args, context);
+        expect(response[0]).toHaveProperty("listingId");
+        expect(response.length).toBeGreaterThan(1);
+    });
 
-  test("brings a listing", async () => {
-    const args = { listingId: "a114dded-ddef-4052-a106-bb18b94e6b51" };
-    const context = "context";
+    test("brings a listing", async () => {
+        const args = { listingId: "a114dded-ddef-4052-a106-bb18b94e6b51" };
+        const context = "context";
 
-    const response = await getAListing(args, context);
-    expect(response.listingId).toEqual(args.listingId);
-  });
+        const response = await getAListing(args, context);
+        expect(response.listingId).toEqual(args.listingId);
+    });
 
-  test("shows an error when calling a listing", async () => {
-    const args = { listingId: "1111" };
-    const context = "context";
+    test("shows an error when calling a listing", async () => {
+        const args = { listingId: "1111" };
+        const context = "context";
 
-    const response = await getAListing(args, context);
-    expect(response).toMatch("There is no listing");
-  });
+        const response = await getAListing(args, context);
+        expect(response).toMatch("There is no listing");
+    });
 });

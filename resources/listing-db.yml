@@ -1,38 +1,38 @@
 Resources:
- ListingsDB:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: ${self:custom.ListingsDB}
-      AttributeDefinitions:
-        - AttributeName: listingId
-          AttributeType: S
-        - AttributeName: listingName
-          AttributeType: S
-        # - AttributeName: listingDescription
-        #   AttributeType: S
-        # - AttributeName: listingType
-        #   AttributeType: S
-        # - AttributeName: listingActivities
-        #   AttributeType: S
-        # - AttributeName: specialType
-        #   AttributeType: S
-        # - AttributeName: specialAmount
-        #   AttributeType: S
-        # - AttributeName: rating
-        #   AttributeType: N
-        # - AttributeName: guide
-        #   AttributeType: S
-        # - AttributeName: price
-        #   AttributeType: S
-        # - AttributeName: numberOfDays
-        #   AttributeType: N
-        
-      KeySchema:
-        - AttributeName: listingId
-          KeyType: HASH
-        - AttributeName: listingName
-          KeyType: RANGE
-      # Set the capacity based on the stage
-      ProvisionedThroughput:
-        ReadCapacityUnits: ${self:custom.tableThroughput}
-        WriteCapacityUnits: ${self:custom.tableThroughput}
+    ListingsDB:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            TableName: ${self:custom.ListingsDB}
+            AttributeDefinitions:
+                - AttributeName: listingId
+                  AttributeType: S
+                - AttributeName: listingName
+                  AttributeType: S
+                # - AttributeName: listingDescription
+                #   AttributeType: S
+                # - AttributeName: listingType
+                #   AttributeType: S
+                # - AttributeName: listingActivities
+                #   AttributeType: S
+                # - AttributeName: specialType
+                #   AttributeType: S
+                # - AttributeName: specialAmount
+                #   AttributeType: S
+                # - AttributeName: rating
+                #   AttributeType: N
+                # - AttributeName: guide
+                #   AttributeType: S
+                # - AttributeName: price
+                #   AttributeType: S
+                # - AttributeName: numberOfDays
+                #   AttributeType: N
+
+            KeySchema:
+                - AttributeName: listingId
+                  KeyType: HASH
+                - AttributeName: listingName
+                  KeyType: RANGE
+            # Set the capacity based on the stage
+            ProvisionedThroughput:
+                ReadCapacityUnits: ${self:custom.tableThroughput}
+                WriteCapacityUnits: ${self:custom.tableThroughput}
